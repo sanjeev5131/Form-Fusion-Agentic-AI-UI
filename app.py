@@ -131,8 +131,7 @@ if prompt := st.chat_input():
     with st.chat_message("assistant"):
         with st.empty():
             with st.spinner():
-                response = bedrock_agent_runtime.invoke_agent(
-                    agent_id,
+                response = bedrock_agent_runtime.invoke_agent(                    
                     agentId=agent_id,
                     agentAliasId=agent_alias_id,
                     sessionId=st.session_state.session_id,
