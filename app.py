@@ -12,13 +12,14 @@ from services import bedrock_agent_runtime
 
 load_dotenv()
 
-# Configure logging using YAML
+# ✅ Correct Logging Fallback
 if os.path.exists("logging.yaml"):
     with open("logging.yaml", "r") as file:
         config = yaml.safe_load(file)
         logging.config.dictConfig(config)
 else:
-    log_level = logging.getLevelNamesMapping()[(os.environ.get("LOG_LEVEL", "INFO"))]
+    log_level_str = os.environ.get("LOG_LEVEL", "INFO").upper()
+    log_level = getattr(logging, log_level_str, logging.INFO)
     logging.basicConfig(level=log_level)
 
 logger = logging.getLogger(__name__)
@@ -28,14 +29,12 @@ agent_alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "TSTALIASID")
 ui_title = os.environ.get("BEDROCK_AGENT_TEST_UI_TITLE", "Form Fusion - An Agentic AI assistant!")
 ui_icon = os.environ.get("BEDROCK_AGENT_TEST_UI_ICON")
 
-
 def init_session_state():
     st.session_state.session_id = str(uuid.uuid4())
     st.session_state.messages = []
     st.session_state.citations = []
     st.session_state.trace = {}
     st.session_state.pop("uploaded_file", None)
-
 
 st.set_page_config(page_title=ui_title, page_icon=ui_icon, layout="wide")
 st.title(ui_title)
