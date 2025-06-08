@@ -1,13 +1,14 @@
 import boto3
+import os
 from botocore.exceptions import ClientError
 import logging
 
 logger = logging.getLogger(__name__)
 
-
 def invoke_agent(agent_id, agent_alias_id, session_id, prompt):
-    try:
-        client = boto3.session.Session().client(service_name="bedrock-agent-runtime")
+    try:        
+        region = os.environ.get("AWS_REGION", "us-east-1")
+        client = boto3.client("bedrock-agent-runtime", region_name=region)
         # See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-agent-runtime/client/invoke_agent.html
         response = client.invoke_agent(
             agentId='HU5YWTSZVQ',
