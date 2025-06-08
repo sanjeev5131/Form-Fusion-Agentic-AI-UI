@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 import uuid
 import yaml
+import boto3
 from services import bedrock_agent_runtime
 
 load_dotenv()
@@ -28,7 +29,7 @@ agent_alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "TSTALIASID")
 ui_title = os.environ.get("BEDROCK_AGENT_TEST_UI_TITLE", "Welcome to AutoMDR Agent..")
 ui_icon = os.environ.get("BEDROCK_AGENT_TEST_UI_ICON")
 region_name='us-east-1'
-
+bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
 
 def init_session_state():
     st.session_state.session_id = str(uuid.uuid4())
@@ -132,8 +133,7 @@ if prompt := st.chat_input():
             with st.spinner():
                 response = bedrock_agent_runtime.invoke_agent(
                     agent_id,
-                    agent_alias_id,
-                    region_name,
+                    agent_alias_id,                    
                     st.session_state.session_id,
                     full_prompt
                 )
