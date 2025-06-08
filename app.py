@@ -133,9 +133,12 @@ if prompt := st.chat_input():
             with st.spinner():
                 response = bedrock_agent_runtime.invoke_agent(
                     agent_id,
-                    agent_alias_id,                    
-                    #st.session_state.session_id,
-                    full_prompt
+                    agentId=agent_id,
+                    agentAliasId=agent_alias_id,
+                    sessionId=st.session_state.session_id,
+                    input={
+                        "inputText": full_prompt
+                    }
                 )
             output_text = response["output_text"]
 
