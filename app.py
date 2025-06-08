@@ -8,11 +8,16 @@ import pandas as pd
 import streamlit as st
 import uuid
 import yaml
+import boto3
 from services import bedrock_agent_runtime
 
+# Load environment variables
 load_dotenv()
 
-# ✅ Correct Logging Fallback
+# Fix for AWS NoRegionError
+boto3.setup_default_session(region_name=os.environ.get("AWS_REGION", "us-east-1"))
+
+# Logging configuration
 if os.path.exists("logging.yaml"):
     with open("logging.yaml", "r") as file:
         config = yaml.safe_load(file)
@@ -24,11 +29,13 @@ else:
 
 logger = logging.getLogger(__name__)
 
+# Environment variables
 agent_id = os.environ.get("BEDROCK_AGENT_ID")
 agent_alias_id = os.environ.get("BEDROCK_AGENT_ALIAS_ID", "TSTALIASID")
 ui_title = os.environ.get("BEDROCK_AGENT_TEST_UI_TITLE", "Form Fusion - An Agentic AI assistant!")
 ui_icon = os.environ.get("BEDROCK_AGENT_TEST_UI_ICON")
 
+# Session initialization
 def init_session_state():
     st.session_state.session_id = str(uuid.uuid4())
     st.session_state.messages = []
@@ -36,12 +43,13 @@ def init_session_state():
     st.session_state.trace = {}
     st.session_state.pop("uploaded_file", None)
 
+# Streamlit page setup
 st.set_page_config(page_title=ui_title, page_icon=ui_icon, layout="wide")
 st.title(ui_title)
 if len(st.session_state.items()) == 0:
     init_session_state()
 
-# Sidebar: File Upload + Reset
+# Sidebar: Upload + Reset
 with st.sidebar:
     st.subheader("Upload a file (optional)")
     uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf", "docx", "json", "xls", "xlsx"])
@@ -66,11 +74,7 @@ with st.sidebar:
                 sheet_names = list(excel_data.keys())
 
                 st.markdown("### Available Sheets:")
-                selected_sheets = st.multiselect(
-                    "Select sheets to include in the prompt",
-                    sheet_names,
-                    default=sheet_names
-                )
+                selected_sheets = st.multiselect("Select sheets to include", sheet_names, default=sheet_names)
 
                 combined_data = ""
                 for sheet in selected_sheets:
@@ -106,12 +110,12 @@ with st.sidebar:
     if st.button("Reset Session"):
         init_session_state()
 
-# Display conversation
+# Conversation Display
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
 
-# Chat + Upload Handling
+# Chat Input Handler
 if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -145,7 +149,7 @@ if prompt := st.chat_input():
 
             if len(response["citations"]) > 0:
                 citation_num = 1
-                output_text = re.sub(r"%\[(\d+)\]%", r"<sup>[\1]</sup>", output_text)
+                output_text = re.sub(r"%\[(\d+)]%", r"<sup>[\1]</sup>", output_text)
                 citation_locs = ""
                 for citation in response["citations"]:
                     for retrieved_ref in citation["retrievedReferences"]:
