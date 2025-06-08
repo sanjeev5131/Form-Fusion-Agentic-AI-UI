@@ -132,6 +132,7 @@ if prompt := st.chat_input():
                 response = bedrock_agent_runtime.invoke_agent(
                     agent_id,
                     agent_alias_id,
+                    region_name='us-east-1',
                     st.session_state.session_id,
                     full_prompt
                 )
